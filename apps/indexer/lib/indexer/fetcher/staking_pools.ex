@@ -9,6 +9,7 @@ defmodule Indexer.Fetcher.StakingPools do
   require Logger
 
   alias Explorer.Chain
+  alias Explorer.Chain.StakingPool
   alias Explorer.Staking.PoolsReader
   alias Indexer.BufferedTask
   alias Indexer.Fetcher.StakingPools.Supervisor, as: StakingPoolsSupervisor
@@ -102,6 +103,7 @@ defmodule Indexer.Fetcher.StakingPools do
 
     import_params = %{
       staking_pools: %{params: success},
+      staking_pools_delegators: %{params: delegators_list(success)},
       timeout: :infinity
     }
 
@@ -118,20 +120,12 @@ defmodule Indexer.Fetcher.StakingPools do
     failed
   end
 
-  defp changeset(%{staking_address: staking_address} = pool) do
-    {:ok, mining_address} = Chain.Hash.Address.cast(pool[:mining_address])
-
-    data =
-      pool
-      |> Map.delete(:staking_address)
-      |> Map.put(:mining_address, mining_address)
-      |> Map.put(:is_pool, true)
-
-    %{
-      name: "anonymous",
-      primary: true,
-      address_hash: staking_address,
-      metadata: data
-    }
+  defp delegators_list(pools) do
+    Enum.reduce(pools, [], fn acc, pool ->
+      Enum.map(pool.delegators, fn delegator_params ->
+        delegator_params
+      end)
+      |> Enum.concat(acc)
+    end)
   end
 end

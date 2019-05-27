@@ -18,8 +18,8 @@ defmodule Indexer.Application do
     memory_monitor_name = Memory.Monitor
 
     children = [
-      {Memory.Monitor, [memory_monitor_options, [name: memory_monitor_name]]},
-      {Indexer.Supervisor, [%{memory_monitor: memory_monitor_name}]}
+      {Memory.Monitor, [memory_monitor_options, [name: memory_monitor_name]]}
+      # {Indexer.Supervisor, [%{memory_monitor: memory_monitor_name}]}
     ]
 
     opts = [
