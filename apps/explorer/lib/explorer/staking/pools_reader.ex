@@ -39,8 +39,8 @@ defmodule Explorer.Staking.PoolsReader do
       {
         :ok,
         %{
-          staking_address: staking_address,
-          mining_address: mining_address,
+          staking_address_hash: staking_address,
+          mining_address_hash: mining_address,
           is_active: is_active,
           delegators_count: delegators_count,
           staked_amount: staked_amount,
@@ -62,21 +62,19 @@ defmodule Explorer.Staking.PoolsReader do
   defp delegators_data(delegators, pool_address) do
     Enum.map(delegators, fn address ->
       data =
-        call_methods(
-          [
-            {:staking, "stakeAmount", [pool_address, address]},
-            {:staking, "orderedWithdrawAmount", [pool_address, address]},
-            {:staking, "maxWithdrawAllowed", [pool_address, address]},
-            {:staking, "maxWithdrawOrderAllowed", [pool_address, address]},
-            {:staking, "orderWithdrawEpoch", [pool_address, address]}
-          ]
-        )
+        call_methods([
+          {:staking, "stakeAmount", [pool_address, address]},
+          {:staking, "orderedWithdrawAmount", [pool_address, address]},
+          {:staking, "maxWithdrawAllowed", [pool_address, address]},
+          {:staking, "maxWithdrawOrderAllowed", [pool_address, address]},
+          {:staking, "orderWithdrawEpoch", [pool_address, address]}
+        ])
 
       {:ok, [stake_amount]} = data["stakeAmount"]
       {:ok, [ordered_withdraw]} = data["orderedWithdrawAmount"]
       {:ok, [max_withdraw_allowed]} = data["maxWithdrawAllowed"]
       {:ok, [max_ordered_withdraw_allowed]} = data["maxWithdrawOrderAllowed"]
-      {:ok, [order_withdraw_epoch]} = data["orderWithdrawEpoch"]
+      {:ok, [ordered_withdraw_epoch]} = data["orderWithdrawEpoch"]
 
       %{
         delegator_address_hash: address,
@@ -85,7 +83,7 @@ defmodule Explorer.Staking.PoolsReader do
         ordered_withdraw: ordered_withdraw,
         max_withdraw_allowed: max_withdraw_allowed,
         max_ordered_withdraw_allowed: max_ordered_withdraw_allowed,
-        order_withdraw_epoch: order_withdraw_epoch
+        ordered_withdraw_epoch: ordered_withdraw_epoch
       }
     end)
   end
@@ -109,19 +107,17 @@ defmodule Explorer.Staking.PoolsReader do
   end
 
   defp fetch_pool_data(staking_address, mining_address) do
-    call_methods(
-      [
-        {:staking, "isPoolActive", [staking_address]},
-        {:staking, "poolDelegators", [staking_address]},
-        {:staking, "stakeAmountTotalMinusOrderedWithdraw", [staking_address]},
-        {:staking, "stakeAmountMinusOrderedWithdraw", [staking_address, staking_address]},
-        {:validators, "isValidator", [mining_address]},
-        {:validators, "validatorCounter", [mining_address]},
-        {:validators, "isValidatorBanned", [mining_address]},
-        {:validators, "bannedUntil", [mining_address]},
-        {:validators, "banCounter", [mining_address]}
-      ]
-    )
+    call_methods([
+      {:staking, "isPoolActive", [staking_address]},
+      {:staking, "poolDelegators", [staking_address]},
+      {:staking, "stakeAmountTotalMinusOrderedWithdraw", [staking_address]},
+      {:staking, "stakeAmountMinusOrderedWithdraw", [staking_address, staking_address]},
+      {:validators, "isValidator", [mining_address]},
+      {:validators, "validatorCounter", [mining_address]},
+      {:validators, "isValidatorBanned", [mining_address]},
+      {:validators, "bannedUntil", [mining_address]},
+      {:validators, "banCounter", [mining_address]}
+    ])
   end
 
   defp call_methods(methods) do

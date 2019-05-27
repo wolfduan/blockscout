@@ -72,7 +72,7 @@ defmodule Indexer.Fetcher.StakingPools do
 
   def entry(pool_address) do
     %{
-      staking_address: pool_address,
+      staking_address_hash: pool_address,
       retries_count: 0
     }
   end
@@ -80,7 +80,7 @@ defmodule Indexer.Fetcher.StakingPools do
   defp fetch_from_blockchain(addresses) do
     addresses
     |> Enum.filter(&(&1.retries_count <= @max_retries))
-    |> Enum.map(fn %{staking_address: staking_address} = pool ->
+    |> Enum.map(fn %{staking_address_hash: staking_address} = pool ->
       case PoolsReader.pool_data(staking_address) do
         {:ok, data} ->
           Map.merge(pool, data)
@@ -94,15 +94,21 @@ defmodule Indexer.Fetcher.StakingPools do
   defp import_pools(pools) do
     {failed, success} =
       Enum.reduce(pools, {[], []}, fn
-        %{error: _error, staking_address: address}, {failed, success} ->
-          {[address | failed], success}
+        %{error: _error} = pool, {failed, success} ->
+          {[pool | failed], success}
 
         pool, {failed, success} ->
-          {failed, [changeset(pool) | success]}
+          changeset = StakingPool.changeset(%StakingPool{}, pool)
+
+          if changeset.valid? do
+            {failed, [changeset.changes | success]}
+          else
+            {[pool | failed], success}
+          end
       end)
 
     import_params = %{
-      staking_pools: %{params: success},
+      staking_pools: %{params: remove_assoc(success)},
       staking_pools_delegators: %{params: delegators_list(success)},
       timeout: :infinity
     }
@@ -121,11 +127,14 @@ defmodule Indexer.Fetcher.StakingPools do
   end
 
   defp delegators_list(pools) do
-    Enum.reduce(pools, [], fn acc, pool ->
-      Enum.map(pool.delegators, fn delegator_params ->
-        delegator_params
-      end)
+    Enum.reduce(pools, [], fn pool, acc ->
+      pool.delegators
+      |> Enum.map(&Map.get(&1, :changes))
       |> Enum.concat(acc)
     end)
+  end
+
+  defp remove_assoc(pools) do
+    Enum.map(pools, &Map.delete(&1, :delegators))
   end
 end
