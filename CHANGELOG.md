@@ -18,6 +18,7 @@
 - [#1999](https://github.com/poanetwork/blockscout/pull/1999) - load data async on addresses page
 - [#2002](https://github.com/poanetwork/blockscout/pull/2002) - Get estimated count of blocks when cache is empty
 - [#1807](https://github.com/poanetwork/blockscout/pull/1807) - New theming capabilites.
+- [#1890](https://github.com/poanetwork/blockscout/pull/1890) - Verification links to other explorers for ETH 
 
 ### Fixes
 
