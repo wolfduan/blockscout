@@ -15,7 +15,7 @@
                   <div class="input-group-text">POA20</div>
                 </div>
               </div>
-              <p class="form-p m-b-0">Minimum Stake: <span class="text-dark"><%= @pool.metadata["min_stake"] %> POA20</span></p>
+              <p class="form-p m-b-0">Minimum Stake: <span class="text-dark"><%= 0 %> POA20</span></p>
               <p class="form-p">Your Balance: <span class="text-dark">2000 POA20</span></p>
               <div class="form-buttons">
                 <%= render BlockScoutWeb.StakesView, "_stakes_btn_stake.html", text: gettext("Stake More"), extra_class: "full-width" %>

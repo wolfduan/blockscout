@@ -6,26 +6,30 @@
       width="125"
     ></canvas>
     <div class="stakes-progress-data">
-      <div class="stakes-progress-data-progress js-stakes-progress-data-progress"><%= @pool.metadata["self_staked_amount"] %></div>
-      <div class="stakes-progress-data-total js-stakes-progress-data-total"><%= @pool.metadata["staked_amount"] %></div>
+      <div class="stakes-progress-data-progress js-stakes-progress-data-progress">
+        <%= format_wei_value(@pool.self_staked_amount, :ether, include_unit_label: false) %>
+      </div>
+      <div class="stakes-progress-data-total js-stakes-progress-data-total">
+        <%= format_wei_value(@pool.staked_amount, :ether, include_unit_label: false) %>
+      </div>
     </div>
   </div>
   <div class="stakes-progress-info">
     <h2 class="stakes-progress-info-title"><%= gettext("Pool") %></h2>
     <p class="stakes-progress-info-value link-color">
-      <%= binary_part(to_string(@pool.address_hash), 0, 13) %>
+      <%= binary_part(to_string(@pool.staking_address_hash), 0, 13) %>
     </p>
   </div>
   <div class="stakes-progress-info">
     <h2 class="stakes-progress-info-title"><%= gettext("Stakes Ratio") %></h2>
     <p class="stakes-progress-info-value">
-      <%= @pool.metadata["staked_ratio"] %>
+      <%= @pool.staked_ratio %>%
     </p>
   </div>
   <div class="stakes-progress-info">
     <h2 class="stakes-progress-info-title"><%= gettext("Delegators") %></h2>
     <p class="stakes-progress-info-value link-color">
-      <%= @pool.metadata["delegators_count"] %>
+      <%= @pool.delegators_count %>
     </p>
   </div>
 </div>

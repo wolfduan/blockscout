@@ -1,10 +1,18 @@
 defmodule BlockScoutWeb.StakesHelpers do
-  alias Explorer.Chain.BlockNumberCache
+  alias Explorer.Chain.{BlockNumberCache, Wei}
 
-  def amount_ratio(%{"staked_amount" => staked_amount}) when staked_amount <= 0, do: 0
+  def amount_ratio(pool) do
+    {:ok, zero_wei} = Wei.cast(0)
 
-  def amount_ratio(metadata) do
-    metadata["self_staked_amount"] / metadata["staked_amount"] * 100
+    case pool do
+      %{staked_amount: ^zero_wei} ->
+        0
+
+      %{staked_amount: staked_amount, self_staked_amount: self_staked} ->
+        amount = Decimal.to_float(staked_amount.value)
+        self = Decimal.to_float(self_staked.value)
+        self / amount * 100
+    end
   end
 
   def estimated_unban_day(banned_until, average_block_time) do
@@ -23,4 +31,8 @@ defmodule BlockScoutWeb.StakesHelpers do
   def list_title(:validator), do: "Validators"
   def list_title(:active), do: "Active Pools"
   def list_title(:inactive), do: "Inactive Pools"
+
+  def minus_wei(wei1, wei2) do
+    Wei.sub(wei1, wei2)
+  end
 end
