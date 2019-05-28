@@ -3,9 +3,11 @@ defmodule BlockScoutWeb.PoolsController do
 
   alias Explorer.Counters.AverageBlockTime
   alias Explorer.Chain
-  alias Explorer.PagingOptions
+  alias BlockScoutWeb.PoolsView
   alias Explorer.Staking.EpochCounter
   alias Explorer.Chain.BlockNumberCache
+
+  import BlockScoutWeb.Chain, only: [paging_options: 1, next_page_params: 3, split_list_by_page: 1]
 
   def validators(conn, params) do
     render_list(:validator, conn, params)
@@ -19,27 +21,73 @@ defmodule BlockScoutWeb.PoolsController do
     render_list(:inactive, conn, params)
   end
 
-  defp render_list(filter, conn, params) do
-    paging_options = %PagingOptions{
-      page_size: params["lim"] || 20,
-      page_number: params["off"] || 1
-    }
+  defp render_list(filter, conn, %{"type" => "JSON"} = params) do
+    [paging_options: options] = paging_options(params)
+    pools_plus_one = Chain.staking_pools(filter, options)
 
-    pools = Chain.staking_pools(filter, paging_options)
+    {pools, next_page} = split_list_by_page(pools_plus_one)
+
+    next_page_path =
+      case next_page_params(next_page, pools, params) do
+        nil ->
+          nil
+
+        next_page_params ->
+          next_page_path(filter, conn, Map.delete(next_page_params, "type"))
+      end
+
+    average_block_time = AverageBlockTime.average_block_time()
+
+    items =
+      pools
+      |> Enum.with_index(1)
+      |> Enum.map(fn {pool, index} ->
+        Phoenix.View.render_to_string(
+          PoolsView,
+          "_rows.html",
+          pool: pool,
+          index: index,
+          average_block_time: average_block_time,
+          pools_type: filter
+        )
+      end)
+
+    json(
+      conn,
+      %{
+        items: items,
+        next_page_path: next_page_path
+      }
+    )
+  end
+
+  defp render_list(filter, conn, _) do
     average_block_time = AverageBlockTime.average_block_time()
     epoch_number = EpochCounter.epoch_number()
     epoch_end_block = EpochCounter.epoch_end_block()
     block_number = BlockNumberCache.max_number()
 
     options = [
-      pools: pools,
       average_block_time: average_block_time,
       pools_type: filter,
       epoch_number: epoch_number,
       epoch_end_in: epoch_end_block - block_number,
-      block_number: block_number
+      block_number: block_number,
+      current_path: current_path(conn),
     ]
 
     render(conn, "index.html", options)
+  end
+
+  defp next_page_path(:validator, conn, params) do
+    validators_path(conn, :validators, params)
+  end
+
+  defp next_page_path(:active, conn, params) do
+    active_pools_path(conn, :active_pools, params)
+  end
+
+  defp next_page_path(:inactive, conn, params) do
+    inactive_pools_path(conn, :inactive_pools, params)
   end
 end
