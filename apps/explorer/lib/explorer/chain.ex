@@ -2929,11 +2929,16 @@ defmodule Explorer.Chain do
       StakingPool
       |> staking_pool_filter(filter)
       |> limit(^page_size)
+      |> order_by(desc: :staked_ratio, asc: :staking_address_hash)
 
     case paging_options.key do
-      {index} ->
+      {value, address_hash} ->
         query
-        |> where([p], p.id > ^index)
+        |> where(
+          [p],
+          p.staked_ratio < ^value or
+          (p.staked_ratio == ^value and p.staking_address_hash > ^address_hash)
+        )
         |> Repo.all()
 
       _ ->

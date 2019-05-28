@@ -1,5 +1,5 @@
 <tr class=<%= if @pool.is_banned, do:  "stakes-tr-banned" %>>
-  <td class="stakes-td"><div class="stakes-td-order"><%= @index %></div></td>
+  <td class="stakes-td"><div class="stakes-td-order"><%= @pool.position %></div></td>
   <td class="stakes-td">
     <%=
     tooltip = if @pool.is_validator, do: "This is a validator", else: false
@@ -7,7 +7,7 @@
     "_stakes_address.html",
     address: binary_part(to_string(@pool.staking_address_hash), 0, 13),
     tooltip: tooltip,
-    index: @index
+    index: @pool.position
     %>
   </td>
   <td class="stakes-td">
@@ -34,9 +34,9 @@
       </span>
     <% else %>
       <div class="stakes-controls">
-        <%= render BlockScoutWeb.StakesView, "_stakes_control_move.html", extra_class: "js-move-stake", index: @index %>
-        <%= render BlockScoutWeb.StakesView, "_stakes_control_withdraw.html", extra_class: "js-withdraw-stake", index: @index%>
-        <%= render BlockScoutWeb.StakesView, "_stakes_control_stake.html", extra_class: "js-stake-stake", index: @index %>
+        <%= render BlockScoutWeb.StakesView, "_stakes_control_move.html", extra_class: "js-move-stake", index: @pool.position %>
+        <%= render BlockScoutWeb.StakesView, "_stakes_control_withdraw.html", extra_class: "js-withdraw-stake", index: @pool.position%>
+        <%= render BlockScoutWeb.StakesView, "_stakes_control_stake.html", extra_class: "js-stake-stake", index: @pool.position %>
       </div>
     <% end %>
   </td>
@@ -45,10 +45,10 @@
       render BlockScoutWeb.StakesView,
       "_stakes_modal_validator_info.html",
       validator: @pool,
-      index: @index,
+      index: @pool.position,
       average_block_time: @average_block_time
     %>
-    <%= render BlockScoutWeb.StakesView, "_stakes_modal_stake.html", pool: @pool, index: @index %>
-    <%= render BlockScoutWeb.StakesView, "_stakes_modal_withdraw.html", pool: @pool, index: @index %>
+    <%= render BlockScoutWeb.StakesView, "_stakes_modal_stake.html", pool: @pool, index: @pool.position %>
+    <%= render BlockScoutWeb.StakesView, "_stakes_modal_withdraw.html", pool: @pool, index: @pool.position %>
   </td>
 </tr>

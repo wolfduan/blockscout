@@ -23,7 +23,19 @@ defmodule BlockScoutWeb.PoolsController do
 
   defp render_list(filter, conn, %{"type" => "JSON"} = params) do
     [paging_options: options] = paging_options(params)
-    pools_plus_one = Chain.staking_pools(filter, options)
+
+    last_index =
+      params
+      |> Map.get("position", "0")
+      |> String.to_integer()
+
+    pools_plus_one =
+      filter
+      |> Chain.staking_pools(options)
+      |> Enum.with_index(last_index + 1)
+      |> Enum.map(fn {pool, index} ->
+        Map.put(pool, :position, index)
+      end)
 
     {pools, next_page} = split_list_by_page(pools_plus_one)
 
@@ -40,13 +52,11 @@ defmodule BlockScoutWeb.PoolsController do
 
     items =
       pools
-      |> Enum.with_index(1)
-      |> Enum.map(fn {pool, index} ->
+      |> Enum.map(fn pool ->
         Phoenix.View.render_to_string(
           PoolsView,
           "_rows.html",
           pool: pool,
-          index: index,
           average_block_time: average_block_time,
           pools_type: filter
         )
@@ -73,7 +83,7 @@ defmodule BlockScoutWeb.PoolsController do
       epoch_number: epoch_number,
       epoch_end_in: epoch_end_block - block_number,
       block_number: block_number,
-      current_path: current_path(conn),
+      current_path: current_path(conn)
     ]
 
     render(conn, "index.html", options)
