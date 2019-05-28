@@ -35,8 +35,8 @@
     <% else %>
       <div class="stakes-controls">
         <%= render BlockScoutWeb.StakesView, "_stakes_control_move.html", extra_class: "js-move-stake", index: @pool.position %>
-        <%= render BlockScoutWeb.StakesView, "_stakes_control_withdraw.html", extra_class: "js-withdraw-stake", index: @pool.position%>
-        <%= render BlockScoutWeb.StakesView, "_stakes_control_stake.html", extra_class: "js-stake-stake", index: @pool.position %>
+        <%= render BlockScoutWeb.StakesView, "_stakes_control_withdraw.html", index: @pool.position%>
+        <%= render BlockScoutWeb.StakesView, "_stakes_control_stake.html", index: @pool.position %>
       </div>
     <% end %>
   </td>
